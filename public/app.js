@@ -222,6 +222,7 @@ async function renderQueue() {
       <strong>${escapeHtml(item.flowName || "Fluxo")}</strong>
       <span>Pessoa: ${escapeHtml(item.recipientId || "-")}</span>
       <span>Post: ${escapeHtml(item.postId || "qualquer")}</span>
+      <span>Comentario: ${escapeHtml(item.commentId || "-")}</span>
       <span>Recebido: ${escapeHtml(item.incomingText || "-")}</span>
       <div class="queue-message">${escapeHtml(item.responseText || "")}</div>
       <button type="button">Copiar resposta</button>
@@ -248,6 +249,7 @@ async function renderEvents() {
     card.innerHTML = `
       <strong>${escapeHtml(labelForEvent(item.status))}</strong>
       <span>Post: ${escapeHtml(item.incoming?.postId || "-")}</span>
+      <span>Comentario: ${escapeHtml(item.incoming?.commentId || "-")}</span>
       <span>Pessoa: ${escapeHtml(item.incoming?.senderId || "-")}</span>
       <span>Texto: ${escapeHtml(item.incoming?.text || "-")}</span>
       <span>Fluxo: ${escapeHtml(item.flowName || item.reason || "-")}</span>

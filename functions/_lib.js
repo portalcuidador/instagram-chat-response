@@ -155,6 +155,13 @@ export function normalizeIncomingMessage(payload) {
       payload.entry?.[0]?.changes?.[0]?.value?.media?.id ||
       payload.entry?.[0]?.changes?.[0]?.value?.post_id ||
       "",
+    commentId:
+      payload.commentId ||
+      payload.comment_id ||
+      payload.comment?.id ||
+      payload.entry?.[0]?.changes?.[0]?.value?.id ||
+      payload.entry?.[0]?.changes?.[0]?.value?.comment_id ||
+      "",
     text:
       payload.text ||
       payload.message?.text ||
@@ -204,7 +211,7 @@ export async function runFlow(env, flow, incoming) {
     if (step.type === "message") {
       const responseText = renderTemplate(step.text || "", incoming);
       const result = await sendOutboundMessage(env, incoming, responseText, flow);
-      actions.push({ type: "message", text: responseText, sent: result.sent, detail: result.detail });
+      actions.push({ type: "message", text: responseText, sent: result.sent, detail: result.detail, mode: result.mode });
       continue;
     }
 
@@ -252,17 +259,23 @@ function normalizeSteps(steps) {
 
 async function sendOutboundMessage(env, incoming, responseText, flow) {
   const outboundUrl = normalizeOutboundApiUrl(env.OUTBOUND_API_URL || "");
+  const metaAccessToken = String(env.META_ACCESS_TOKEN || "").trim();
 
   if (!outboundUrl) {
+    if (metaAccessToken && incoming.commentId) {
+      return sendMetaPrivateReply(env, incoming.commentId, responseText);
+    }
+
     const item = await enqueueReply(env, {
       recipientId: incoming.senderId,
       postId: incoming.postId,
+      commentId: incoming.commentId,
       incomingText: incoming.text,
       responseText,
       flowId: flow.id,
       flowName: flow.name
     });
-    return { sent: false, detail: "Resposta adicionada a fila.", queueId: item.id };
+    return { sent: false, detail: "Resposta adicionada a fila.", queueId: item.id, mode: "queue" };
   }
 
   const headers = { "content-type": "application/json" };
@@ -282,7 +295,23 @@ async function sendOutboundMessage(env, incoming, responseText, flow) {
   });
 
   const detail = await response.text();
-  return { sent: response.ok, detail: detail || response.statusText };
+  return { sent: response.ok, detail: detail || response.statusText, mode: "custom_api" };
+}
+
+async function sendMetaPrivateReply(env, commentId, responseText) {
+  const apiVersion = env.META_GRAPH_VERSION || "v25.0";
+  const url = `https://graph.facebook.com/${apiVersion}/${encodeURIComponent(commentId)}/private_replies`;
+  const body = new URLSearchParams();
+  body.set("message", responseText);
+  body.set("access_token", env.META_ACCESS_TOKEN);
+
+  const response = await fetch(url, {
+    method: "POST",
+    body
+  });
+
+  const detail = await response.text();
+  return { sent: response.ok, detail: detail || response.statusText, mode: "meta_private_reply" };
 }
 
 function assertKv(env) {
@@ -310,6 +339,7 @@ function renderTemplate(template, incoming) {
   return template
     .replaceAll("{{senderId}}", incoming.senderId)
     .replaceAll("{{postId}}", incoming.postId)
+    .replaceAll("{{commentId}}", incoming.commentId)
     .replaceAll("{{text}}", incoming.text);
 }
 

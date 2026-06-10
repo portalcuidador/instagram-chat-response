@@ -40,6 +40,7 @@ assert.deepEqual(
         changes: [
           {
             value: {
+              id: "comment-1",
               from: { id: "456" },
               media: { id: "post-1" },
               text: "quero"
@@ -52,6 +53,7 @@ assert.deepEqual(
   {
     senderId: "456",
     postId: "post-1",
+    commentId: "comment-1",
     text: "quero",
     raw: {
       entry: [
@@ -59,6 +61,7 @@ assert.deepEqual(
           changes: [
             {
               value: {
+                id: "comment-1",
                 from: { id: "456" },
                 media: { id: "post-1" },
                 text: "quero"
@@ -71,8 +74,8 @@ assert.deepEqual(
   }
 );
 assert.equal(
-  renderTemplate("Pessoa {{senderId}} disse {{text}} no post {{postId}}", { senderId: "1", text: "Oi", postId: "post-1" }),
-  "Pessoa 1 disse Oi no post post-1"
+  renderTemplate("Pessoa {{senderId}} disse {{text}} no post {{postId}} e comentario {{commentId}}", { senderId: "1", text: "Oi", postId: "post-1", commentId: "comment-1" }),
+  "Pessoa 1 disse Oi no post post-1 e comentario comment-1"
 );
 
 server.listen(0, async () => {

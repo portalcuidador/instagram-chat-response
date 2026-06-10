@@ -146,6 +146,13 @@ function normalizeIncomingMessage(payload) {
       payload.entry?.[0]?.changes?.[0]?.value?.media?.id ||
       payload.entry?.[0]?.changes?.[0]?.value?.post_id ||
       "",
+    commentId:
+      payload.commentId ||
+      payload.comment_id ||
+      payload.comment?.id ||
+      payload.entry?.[0]?.changes?.[0]?.value?.id ||
+      payload.entry?.[0]?.changes?.[0]?.value?.comment_id ||
+      "",
     text:
       payload.text ||
       payload.message?.text ||
@@ -188,6 +195,7 @@ async function sendOutboundMessage(incoming, text, flow) {
     const item = enqueueReply({
       recipientId: incoming.senderId,
       postId: incoming.postId,
+      commentId: incoming.commentId,
       incomingText: incoming.text,
       responseText: text,
       flowId: flow.id,
@@ -257,6 +265,7 @@ function renderTemplate(template, incoming) {
   return template
     .replaceAll("{{senderId}}", incoming.senderId)
     .replaceAll("{{postId}}", incoming.postId)
+    .replaceAll("{{commentId}}", incoming.commentId)
     .replaceAll("{{text}}", incoming.text);
 }
 
