@@ -24,7 +24,9 @@ const els = {
   testText: document.querySelector("#testText"),
   testResult: document.querySelector("#testResult"),
   clearQueue: document.querySelector("#clearQueue"),
-  replyQueue: document.querySelector("#replyQueue")
+  replyQueue: document.querySelector("#replyQueue"),
+  clearEvents: document.querySelector("#clearEvents"),
+  eventLog: document.querySelector("#eventLog")
 };
 
 boot();
@@ -34,6 +36,7 @@ async function boot() {
   selectedId = state.flows[0]?.id || "";
   render();
   await renderQueue();
+  await renderEvents();
 }
 
 els.addFlow.addEventListener("click", () => {
@@ -83,11 +86,17 @@ els.runTest.addEventListener("click", async () => {
   });
   els.testResult.textContent = JSON.stringify(result, null, 2);
   await renderQueue();
+  await renderEvents();
 });
 
 els.clearQueue.addEventListener("click", async () => {
   await request("/api/queue", { method: "DELETE" });
   await renderQueue();
+});
+
+els.clearEvents.addEventListener("click", async () => {
+  await request("/api/events", { method: "DELETE" });
+  await renderEvents();
 });
 
 function addStep(step) {
@@ -224,6 +233,29 @@ async function renderQueue() {
   });
 }
 
+async function renderEvents() {
+  const events = await request("/api/events");
+  els.eventLog.innerHTML = "";
+
+  if (!events.items.length) {
+    els.eventLog.innerHTML = `<div class="queue-item"><span>Nenhum webhook recebido ainda.</span></div>`;
+    return;
+  }
+
+  events.items.slice(0, 10).forEach((item) => {
+    const card = document.createElement("div");
+    card.className = "queue-item";
+    card.innerHTML = `
+      <strong>${escapeHtml(labelForEvent(item.status))}</strong>
+      <span>Post: ${escapeHtml(item.incoming?.postId || "-")}</span>
+      <span>Pessoa: ${escapeHtml(item.incoming?.senderId || "-")}</span>
+      <span>Texto: ${escapeHtml(item.incoming?.text || "-")}</span>
+      <span>Fluxo: ${escapeHtml(item.flowName || item.reason || "-")}</span>
+    `;
+    els.eventLog.appendChild(card);
+  });
+}
+
 async function request(url, options = {}) {
   const headers = {
     "content-type": "application/json"
@@ -278,6 +310,14 @@ function labelForStep(type) {
     delay: "Espera",
     tag: "Etiqueta"
   }[type] || "Passo";
+}
+
+function labelForEvent(status) {
+  return {
+    matched: "Combinou com fluxo",
+    unmatched: "Recebido sem fluxo",
+    invalid: "Recebido invalido"
+  }[status] || "Webhook recebido";
 }
 
 function escapeHtml(value) {

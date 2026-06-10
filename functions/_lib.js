@@ -1,5 +1,6 @@
 const FLOWS_KEY = "flows";
 const QUEUE_KEY = "queue";
+const EVENTS_KEY = "events";
 
 const defaultFlows = {
   flows: [
@@ -95,6 +96,30 @@ export async function readQueue(env) {
 export async function writeQueue(env, data) {
   assertKv(env);
   await env.CHAT_RESPONSE_KV.put(QUEUE_KEY, JSON.stringify(data));
+}
+
+export async function readEvents(env) {
+  assertKv(env);
+  return (await env.CHAT_RESPONSE_KV.get(EVENTS_KEY, "json")) || { items: [] };
+}
+
+export async function writeEvents(env, data) {
+  assertKv(env);
+  await env.CHAT_RESPONSE_KV.put(EVENTS_KEY, JSON.stringify(data));
+}
+
+export async function logEvent(env, event) {
+  const events = await readEvents(env);
+  const item = {
+    id: `event-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`,
+    createdAt: new Date().toISOString(),
+    ...event
+  };
+
+  events.items.unshift(item);
+  events.items = events.items.slice(0, 50);
+  await writeEvents(env, events);
+  return item;
 }
 
 export async function enqueueReply(env, reply) {

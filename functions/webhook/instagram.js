@@ -1,4 +1,4 @@
-import { findMatchingFlow, json, normalizeIncomingMessage, readFlows, runFlow, text } from "../_lib.js";
+import { findMatchingFlow, json, logEvent, normalizeIncomingMessage, readFlows, runFlow, text } from "../_lib.js";
 
 export async function onRequestGet({ request, env }) {
   const url = new URL(request.url);
@@ -22,6 +22,12 @@ export async function onRequestPost({ request, env }) {
   const incoming = normalizeIncomingMessage(payload);
 
   if (!incoming.senderId || !incoming.text) {
+    await logEvent(env, {
+      status: "invalid",
+      reason: "Mensagem sem senderId ou text.",
+      incoming,
+      payload
+    });
     return json({
       error: "Mensagem invalida.",
       expected: {
@@ -35,6 +41,12 @@ export async function onRequestPost({ request, env }) {
   const flow = findMatchingFlow(flows, incoming.text, incoming.postId);
 
   if (!flow) {
+    await logEvent(env, {
+      status: "unmatched",
+      reason: "Nenhum fluxo encontrado.",
+      incoming,
+      payload
+    });
     return json({
       matched: false,
       message: "Nenhum fluxo encontrado para a mensagem."
@@ -42,6 +54,13 @@ export async function onRequestPost({ request, env }) {
   }
 
   const actions = await runFlow(env, flow, incoming);
+  await logEvent(env, {
+    status: "matched",
+    flowId: flow.id,
+    flowName: flow.name,
+    incoming,
+    actions
+  });
   return json({
     matched: true,
     flowId: flow.id,
