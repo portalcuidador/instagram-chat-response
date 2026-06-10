@@ -1,4 +1,4 @@
-import { json, requireAdmin } from "../_lib.js";
+import { getGraphHost, json, requireAdmin } from "../_lib.js";
 
 export async function onRequestGet({ request, env }) {
   const authError = requireAdmin(request, env);
@@ -17,8 +17,9 @@ export async function onRequestGet({ request, env }) {
   }
 
   const apiVersion = env.META_GRAPH_VERSION || "v25.0";
+  const graphHost = getGraphHost(accessToken, env.META_GRAPH_HOST);
   const fields = "id,caption,permalink,timestamp,media_type";
-  const url = new URL(`https://graph.facebook.com/${apiVersion}/${igUserId}/media`);
+  const url = new URL(`https://${graphHost}/${apiVersion}/${igUserId}/media`);
   url.searchParams.set("fields", fields);
   url.searchParams.set("limit", "25");
   url.searchParams.set("access_token", accessToken);

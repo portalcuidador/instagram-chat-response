@@ -320,7 +320,8 @@ async function sendOutboundMessage(env, incoming, responseText, flow) {
 
 async function sendMetaPrivateReply(env, commentId, responseText) {
   const apiVersion = env.META_GRAPH_VERSION || "v25.0";
-  const url = `https://graph.facebook.com/${apiVersion}/${encodeURIComponent(commentId)}/private_replies`;
+  const graphHost = getGraphHost(env.META_ACCESS_TOKEN, env.META_GRAPH_HOST);
+  const url = `https://${graphHost}/${apiVersion}/${encodeURIComponent(commentId)}/private_replies`;
   const body = new URLSearchParams();
   body.set("message", responseText);
   body.set("access_token", env.META_ACCESS_TOKEN);
@@ -332,6 +333,15 @@ async function sendMetaPrivateReply(env, commentId, responseText) {
 
   const detail = await response.text();
   return { sent: response.ok, detail: detail || response.statusText, mode: "meta_private_reply" };
+}
+
+export function getGraphHost(accessToken, configuredHost = "") {
+  const host = String(configuredHost || "").trim();
+  if (host) {
+    return host.replace(/^https?:\/\//, "").replace(/\/$/, "");
+  }
+
+  return String(accessToken || "").trim().startsWith("IG") ? "graph.instagram.com" : "graph.facebook.com";
 }
 
 function assertKv(env) {
