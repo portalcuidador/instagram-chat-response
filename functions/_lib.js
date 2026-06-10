@@ -320,15 +320,32 @@ async function sendOutboundMessage(env, incoming, responseText, flow) {
 
 async function sendMetaPrivateReply(env, commentId, responseText) {
   const apiVersion = env.META_GRAPH_VERSION || "v25.0";
+  const igUserId = String(env.META_IG_USER_ID || "").trim();
   const graphHost = getGraphHost(env.META_ACCESS_TOKEN, env.META_GRAPH_HOST);
-  const url = `https://${graphHost}/${apiVersion}/${encodeURIComponent(commentId)}/private_replies`;
-  const body = new URLSearchParams();
-  body.set("message", responseText);
-  body.set("access_token", env.META_ACCESS_TOKEN);
 
+  if (!igUserId) {
+    return {
+      sent: false,
+      detail: "META_IG_USER_ID nao configurado. Nao foi possivel enviar resposta privada.",
+      mode: "meta_private_reply"
+    };
+  }
+
+  const url = `https://${graphHost}/${apiVersion}/${encodeURIComponent(igUserId)}/messages`;
   const response = await fetch(url, {
     method: "POST",
-    body
+    headers: {
+      authorization: `Bearer ${env.META_ACCESS_TOKEN}`,
+      "content-type": "application/json"
+    },
+    body: JSON.stringify({
+      recipient: {
+        comment_id: commentId
+      },
+      message: {
+        text: responseText
+      }
+    })
   });
 
   const detail = await response.text();
