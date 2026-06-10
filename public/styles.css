@@ -212,6 +212,29 @@ code {
   margin: 14px 0 18px;
 }
 
+.post-picker {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) auto minmax(260px, 1.2fr);
+  gap: 12px;
+  align-items: end;
+  margin: 0 0 20px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fbfaf8;
+  padding: 12px;
+}
+
+.post-picker strong,
+.post-picker span {
+  display: block;
+}
+
+.post-picker span {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
 .step {
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -306,6 +329,7 @@ pre {
   .topbar,
   .split,
   .three-cols,
+  .post-picker,
   .steps-header,
   .queue-header,
   .actions {

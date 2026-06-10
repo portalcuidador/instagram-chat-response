@@ -12,6 +12,8 @@ const els = {
   flowEnabled: document.querySelector("#flowEnabled"),
   matchType: document.querySelector("#matchType"),
   postIds: document.querySelector("#postIds"),
+  loadPosts: document.querySelector("#loadPosts"),
+  postSelect: document.querySelector("#postSelect"),
   keywords: document.querySelector("#keywords"),
   steps: document.querySelector("#steps"),
   addMessage: document.querySelector("#addMessage"),
@@ -72,6 +74,18 @@ els.deleteFlow.addEventListener("click", () => {
 els.addMessage.addEventListener("click", () => addStep({ type: "message", text: "Nova mensagem" }));
 els.addDelay.addEventListener("click", () => addStep({ type: "delay", seconds: 2 }));
 els.addTag.addEventListener("click", () => addStep({ type: "tag", tag: "novo_lead" }));
+
+els.loadPosts.addEventListener("click", loadPosts);
+
+els.postSelect.addEventListener("change", () => {
+  if (!els.postSelect.value) {
+    return;
+  }
+
+  els.postIds.value = els.postSelect.value;
+  syncSelectedFromForm();
+  renderFlowList();
+});
 
 els.runTest.addEventListener("click", async () => {
   syncSelectedFromForm();
@@ -206,6 +220,34 @@ function selectedFlow() {
   return state.flows.find((flow) => flow.id === selectedId);
 }
 
+async function loadPosts() {
+  els.loadPosts.disabled = true;
+  els.loadPosts.textContent = "Carregando...";
+
+  try {
+    const result = await request("/api/posts");
+    els.postSelect.innerHTML = `<option value="">Selecione uma postagem</option>`;
+
+    if (result.error) {
+      const option = document.createElement("option");
+      option.value = "";
+      option.textContent = result.error;
+      els.postSelect.appendChild(option);
+      return;
+    }
+
+    result.posts.forEach((post) => {
+      const option = document.createElement("option");
+      option.value = post.id;
+      option.textContent = `${formatPostDate(post.timestamp)} - ${trimText(post.caption || post.mediaType || post.id, 70)}`;
+      els.postSelect.appendChild(option);
+    });
+  } finally {
+    els.loadPosts.disabled = false;
+    els.loadPosts.textContent = "Carregar postagens";
+  }
+}
+
 async function renderQueue() {
   const queue = await request("/api/queue");
   els.replyQueue.innerHTML = "";
@@ -320,6 +362,23 @@ function labelForEvent(status) {
     unmatched: "Recebido sem fluxo",
     invalid: "Recebido invalido"
   }[status] || "Webhook recebido";
+}
+
+function formatPostDate(value) {
+  if (!value) {
+    return "Sem data";
+  }
+
+  return new Date(value).toLocaleDateString("pt-BR");
+}
+
+function trimText(value, maxLength) {
+  const text = String(value || "").replace(/\s+/g, " ").trim();
+  if (text.length <= maxLength) {
+    return text;
+  }
+
+  return `${text.slice(0, maxLength - 3)}...`;
 }
 
 function escapeHtml(value) {
