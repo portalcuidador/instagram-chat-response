@@ -133,7 +133,9 @@ function normalizeIncomingMessage(payload) {
       payload.senderId ||
       payload.sender_id ||
       payload.from?.id ||
+      payload.comment?.from?.id ||
       payload.entry?.[0]?.messaging?.[0]?.sender?.id ||
+      payload.entry?.[0]?.changes?.[0]?.value?.from?.id ||
       "",
     postId:
       payload.postId ||
@@ -147,7 +149,9 @@ function normalizeIncomingMessage(payload) {
     text:
       payload.text ||
       payload.message?.text ||
+      payload.comment?.text ||
       payload.entry?.[0]?.messaging?.[0]?.message?.text ||
+      payload.entry?.[0]?.changes?.[0]?.value?.text ||
       "",
     raw: payload
   };

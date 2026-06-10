@@ -33,6 +33,43 @@ assert.equal(
   normalizeIncomingMessage({ entry: [{ messaging: [{ sender: { id: "123" }, message: { text: "Oi" } }] }] }).senderId,
   "123"
 );
+assert.deepEqual(
+  normalizeIncomingMessage({
+    entry: [
+      {
+        changes: [
+          {
+            value: {
+              from: { id: "456" },
+              media: { id: "post-1" },
+              text: "quero"
+            }
+          }
+        ]
+      }
+    ]
+  }),
+  {
+    senderId: "456",
+    postId: "post-1",
+    text: "quero",
+    raw: {
+      entry: [
+        {
+          changes: [
+            {
+              value: {
+                from: { id: "456" },
+                media: { id: "post-1" },
+                text: "quero"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  }
+);
 assert.equal(renderTemplate("Pessoa {{senderId}} disse {{text}}", { senderId: "1", text: "Oi" }), "Pessoa 1 disse Oi");
 
 server.listen(0, async () => {
