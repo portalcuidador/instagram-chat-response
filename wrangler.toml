@@ -1,0 +1,7 @@
+name = "instagram-chat-response"
+pages_build_output_dir = "public"
+compatibility_date = "2026-06-10"
+
+[[kv_namespaces]]
+binding = "CHAT_RESPONSE_KV"
+id = "2be2f65a16a54a97bbbcb37168d6814e"

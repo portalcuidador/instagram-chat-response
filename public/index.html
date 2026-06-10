@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Instagram Chat Response</title>
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="topbar">
+        <div>
+          <p class="eyebrow">Automacao de DM</p>
+          <h1>Instagram Chat Response</h1>
+        </div>
+        <div class="endpoint">
+          <span>Webhook</span>
+          <code>/webhook/instagram</code>
+        </div>
+      </section>
+
+      <section class="workspace">
+        <aside class="flow-list">
+          <div class="list-header">
+            <h2>Fluxos</h2>
+            <button id="addFlow" type="button">Novo</button>
+          </div>
+          <div id="flows"></div>
+        </aside>
+
+        <section class="editor" aria-live="polite">
+          <div id="emptyState" class="empty-state">
+            <h2>Selecione um fluxo</h2>
+            <p>Crie respostas condicionais por palavra-chave, mensagem exata ou inicio da frase.</p>
+          </div>
+
+          <form id="flowForm" class="hidden">
+            <div class="form-row split">
+              <label>
+                Nome do fluxo
+                <input id="flowName" type="text" required>
+              </label>
+              <label class="toggle">
+                <input id="flowEnabled" type="checkbox">
+                <span>Ativo</span>
+              </label>
+            </div>
+
+            <div class="form-row three-cols">
+              <label>
+                Condicao
+                <select id="matchType">
+                  <option value="contains">Contem palavra</option>
+                  <option value="equals">Mensagem exata</option>
+                  <option value="startsWith">Comeca com</option>
+                </select>
+              </label>
+              <label>
+                ID da postagem
+                <textarea id="postIds" rows="4" placeholder="Opcional&#10;17900000000000000"></textarea>
+              </label>
+              <label>
+                Palavras-chave
+                <textarea id="keywords" rows="4" placeholder="preco&#10;orcamento&#10;atendente"></textarea>
+              </label>
+            </div>
+
+            <div class="steps-header">
+              <h2>Passos da conversa</h2>
+              <div>
+                <button id="addMessage" type="button">Mensagem</button>
+                <button id="addDelay" type="button">Espera</button>
+                <button id="addTag" type="button">Etiqueta</button>
+              </div>
+            </div>
+
+            <div id="steps" class="steps"></div>
+
+            <div class="actions">
+              <button id="deleteFlow" class="danger" type="button">Excluir</button>
+              <button type="submit">Salvar fluxos</button>
+            </div>
+          </form>
+        </section>
+
+        <aside class="tester">
+          <h2>Teste rapido</h2>
+          <label>
+            ID da pessoa
+            <input id="testSender" value="usuario_teste">
+          </label>
+          <label>
+            ID da postagem
+            <input id="testPostId" placeholder="opcional">
+          </label>
+          <label>
+            Mensagem recebida
+            <textarea id="testText" rows="4">Oi, quero saber o preco</textarea>
+          </label>
+          <button id="runTest" type="button">Simular webhook</button>
+          <pre id="testResult"></pre>
+
+          <div class="queue-header">
+            <h2>Fila de respostas</h2>
+            <button id="clearQueue" class="secondary" type="button">Limpar</button>
+          </div>
+          <div id="replyQueue" class="reply-queue"></div>
+        </aside>
+      </section>
+    </main>
+
+    <script src="/app.js"></script>
+  </body>
+</html>

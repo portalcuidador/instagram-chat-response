@@ -1,0 +1,108 @@
+{
+  "flows": [
+    {
+      "id": "boas-vindas",
+      "name": "Boas-vindas",
+      "enabled": true,
+      "match": {
+        "type": "contains",
+        "postIds": [],
+        "keywords": [
+          "oi",
+          "ola",
+          "olá",
+          "preco",
+          "preço"
+        ]
+      },
+      "steps": [
+        {
+          "type": "message",
+          "text": "Oi! Que bom receber sua mensagem. Posso te ajudar com preços, horarios ou atendimento?"
+        },
+        {
+          "type": "delay",
+          "seconds": 2
+        },
+        {
+          "type": "message",
+          "text": "Responda com PRECO para valores, HORARIO para funcionamento ou ATENDENTE para falar com uma pessoa."
+        }
+      ]
+    },
+    {
+      "id": "atendente",
+      "name": "Encaminhar para atendente",
+      "enabled": true,
+      "match": {
+        "type": "equals",
+        "postIds": [],
+        "keywords": [
+          "atendente",
+          "humano"
+        ]
+      },
+      "steps": [
+        {
+          "type": "message",
+          "text": "Perfeito, vou chamar uma pessoa do time para continuar por aqui."
+        },
+        {
+          "type": "tag",
+          "tag": "precisa_atendimento"
+        }
+      ]
+    },
+    {
+      "id": "fluxo-1781100003851",
+      "name": "Post Ebook",
+      "enabled": true,
+      "match": {
+        "type": "contains",
+        "postIds": [
+          "179xxxxxxxx"
+        ],
+        "keywords": [
+          "ebook",
+          "quero",
+          "enviar"
+        ]
+      },
+      "steps": [
+        {
+          "type": "message",
+          "text": "Oi! Aqui está o link do ebook..."
+        }
+      ]
+    },
+    {
+      "id": "fluxo-1781112495193",
+      "name": "Post 01",
+      "enabled": true,
+      "match": {
+        "type": "contains",
+        "postIds": [
+          "180xxxxxxx"
+        ],
+        "keywords": [
+          "portal",
+          "cuidador"
+        ]
+      },
+      "steps": [
+        {
+          "type": "message",
+          "text": "Oi! Como posso ajudar?"
+        },
+        {
+          "type": "delay",
+          "seconds": 2
+        },
+        {
+          "type": "tag",
+          "tag": "novo_lead"
+        }
+      ]
+    }
+  ]
+}

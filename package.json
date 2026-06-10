@@ -1,0 +1,21 @@
+{
+  "name": "instagram-chat-response",
+  "version": "1.0.0",
+  "description": "Automacao de respostas para DM do Instagram com fluxos condicionais.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "cloudflare:dev": "npx wrangler pages dev public --kv CHAT_RESPONSE_KV",
+    "cloudflare:deploy": "npx wrangler pages deploy public",
+    "test": "node test-engine.js"
+  },
+  "keywords": [
+    "instagram",
+    "dm",
+    "automation",
+    "chatbot"
+  ],
+  "author": "",
+  "license": "MIT"
+}
