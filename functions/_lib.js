@@ -309,6 +309,7 @@ function normalizeText(value) {
 function renderTemplate(template, incoming) {
   return template
     .replaceAll("{{senderId}}", incoming.senderId)
+    .replaceAll("{{postId}}", incoming.postId)
     .replaceAll("{{text}}", incoming.text);
 }
 

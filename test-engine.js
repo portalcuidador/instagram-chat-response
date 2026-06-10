@@ -70,7 +70,10 @@ assert.deepEqual(
     }
   }
 );
-assert.equal(renderTemplate("Pessoa {{senderId}} disse {{text}}", { senderId: "1", text: "Oi" }), "Pessoa 1 disse Oi");
+assert.equal(
+  renderTemplate("Pessoa {{senderId}} disse {{text}} no post {{postId}}", { senderId: "1", text: "Oi", postId: "post-1" }),
+  "Pessoa 1 disse Oi no post post-1"
+);
 
 server.listen(0, async () => {
   try {
