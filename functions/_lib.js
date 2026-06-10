@@ -263,7 +263,27 @@ async function sendOutboundMessage(env, incoming, responseText, flow) {
 
   if (!outboundUrl) {
     if (metaAccessToken && incoming.commentId) {
-      return sendMetaPrivateReply(env, incoming.commentId, responseText);
+      const metaResult = await sendMetaPrivateReply(env, incoming.commentId, responseText);
+      if (metaResult.sent) {
+        return metaResult;
+      }
+
+      const fallback = await enqueueReply(env, {
+        recipientId: incoming.senderId,
+        postId: incoming.postId,
+        commentId: incoming.commentId,
+        incomingText: incoming.text,
+        responseText,
+        flowId: flow.id,
+        flowName: flow.name,
+        deliveryError: metaResult.detail
+      });
+      return {
+        sent: false,
+        detail: `Falha no envio automatico. Resposta adicionada a fila. Erro Meta: ${metaResult.detail}`,
+        mode: "queue_after_meta_error",
+        queueId: fallback.id
+      };
     }
 
     const item = await enqueueReply(env, {

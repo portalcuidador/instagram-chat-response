@@ -223,6 +223,7 @@ function selectedFlow() {
 async function loadPosts() {
   els.loadPosts.disabled = true;
   els.loadPosts.textContent = "Carregando...";
+  els.postSelect.innerHTML = `<option value="">Carregando postagens...</option>`;
 
   try {
     const result = await request("/api/posts");
@@ -242,6 +243,8 @@ async function loadPosts() {
       option.textContent = `${formatPostDate(post.timestamp)} - ${trimText(post.caption || post.mediaType || post.id, 70)}`;
       els.postSelect.appendChild(option);
     });
+  } catch (error) {
+    els.postSelect.innerHTML = `<option value="">Erro: ${escapeHtml(error.message)}</option>`;
   } finally {
     els.loadPosts.disabled = false;
     els.loadPosts.textContent = "Carregar postagens";
@@ -266,6 +269,7 @@ async function renderQueue() {
       <span>Post: ${escapeHtml(item.postId || "qualquer")}</span>
       <span>Comentario: ${escapeHtml(item.commentId || "-")}</span>
       <span>Recebido: ${escapeHtml(item.incomingText || "-")}</span>
+      ${item.deliveryError ? `<span>Erro envio: ${escapeHtml(item.deliveryError)}</span>` : ""}
       <div class="queue-message">${escapeHtml(item.responseText || "")}</div>
       <button type="button">Copiar resposta</button>
     `;
@@ -295,6 +299,7 @@ async function renderEvents() {
       <span>Pessoa: ${escapeHtml(item.incoming?.senderId || "-")}</span>
       <span>Texto: ${escapeHtml(item.incoming?.text || "-")}</span>
       <span>Fluxo: ${escapeHtml(item.flowName || item.reason || "-")}</span>
+      ${item.actions?.length ? `<span>Envio: ${escapeHtml(item.actions.map((action) => `${action.mode || action.type}: ${action.detail || ""}`).join(" | "))}</span>` : ""}
     `;
     els.eventLog.appendChild(card);
   });
