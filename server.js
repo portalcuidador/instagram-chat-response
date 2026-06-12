@@ -182,6 +182,15 @@ async function runFlow(flow, incoming) {
       continue;
     }
 
+    if (step.type === "link_button") {
+      const text = renderTemplate(step.text || "", incoming);
+      const buttonTitle = renderTemplate(step.buttonTitle || "Abrir link", incoming);
+      const buttonUrl = renderTemplate(step.buttonUrl || "", incoming);
+      const result = await sendOutboundMessage(incoming, text, flow, { buttonTitle, buttonUrl });
+      actions.push({ type: "link_button", text, buttonTitle, buttonUrl, sent: result.sent, detail: result.detail });
+      continue;
+    }
+
     if (step.type === "tag") {
       actions.push({ type: "tag", tag: step.tag || "" });
     }
@@ -190,7 +199,7 @@ async function runFlow(flow, incoming) {
   return actions;
 }
 
-async function sendOutboundMessage(incoming, text, flow) {
+async function sendOutboundMessage(incoming, text, flow, options = {}) {
   if (!OUTBOUND_API_URL) {
     const item = enqueueReply({
       recipientId: incoming.senderId,
@@ -198,6 +207,8 @@ async function sendOutboundMessage(incoming, text, flow) {
       commentId: incoming.commentId,
       incomingText: incoming.text,
       responseText: text,
+      buttonTitle: options.buttonTitle || "",
+      buttonUrl: options.buttonUrl || "",
       flowId: flow.id,
       flowName: flow.name
     });
@@ -304,9 +315,28 @@ function normalizeSteps(steps) {
         return { type: "tag", tag: String(step.tag || "").trim() };
       }
 
+      if (step.type === "link_button") {
+        return {
+          type: "link_button",
+          text: String(step.text || "").trim(),
+          buttonTitle: String(step.buttonTitle || "Abrir link").trim(),
+          buttonUrl: String(step.buttonUrl || "").trim()
+        };
+      }
+
       return { type: "message", text: String(step.text || "").trim() };
     })
-    .filter((step) => step.type !== "message" || step.text);
+    .filter((step) => {
+      if (step.type === "message") {
+        return step.text;
+      }
+
+      if (step.type === "link_button") {
+        return step.text && step.buttonUrl;
+      }
+
+      return true;
+    });
 }
 
 function readFlows() {

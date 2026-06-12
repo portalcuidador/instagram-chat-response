@@ -215,6 +215,23 @@ export async function runFlow(env, flow, incoming) {
       continue;
     }
 
+    if (step.type === "link_button") {
+      const responseText = renderTemplate(step.text || "", incoming);
+      const buttonTitle = renderTemplate(step.buttonTitle || "Abrir link", incoming);
+      const buttonUrl = renderTemplate(step.buttonUrl || "", incoming);
+      const result = await sendOutboundMessage(env, incoming, responseText, flow, { buttonTitle, buttonUrl });
+      actions.push({
+        type: "link_button",
+        text: responseText,
+        buttonTitle,
+        buttonUrl,
+        sent: result.sent,
+        detail: result.detail,
+        mode: result.mode
+      });
+      continue;
+    }
+
     if (step.type === "tag") {
       actions.push({ type: "tag", tag: step.tag || "" });
     }
@@ -252,18 +269,37 @@ function normalizeSteps(steps) {
         return { type: "tag", tag: String(step.tag || "").trim() };
       }
 
+      if (step.type === "link_button") {
+        return {
+          type: "link_button",
+          text: String(step.text || "").trim(),
+          buttonTitle: String(step.buttonTitle || "Abrir link").trim(),
+          buttonUrl: String(step.buttonUrl || "").trim()
+        };
+      }
+
       return { type: "message", text: String(step.text || "").trim() };
     })
-    .filter((step) => step.type !== "message" || step.text);
+    .filter((step) => {
+      if (step.type === "message") {
+        return step.text;
+      }
+
+      if (step.type === "link_button") {
+        return step.text && step.buttonUrl;
+      }
+
+      return true;
+    });
 }
 
-async function sendOutboundMessage(env, incoming, responseText, flow) {
+async function sendOutboundMessage(env, incoming, responseText, flow, options = {}) {
   const outboundUrl = normalizeOutboundApiUrl(env.OUTBOUND_API_URL || "");
   const metaAccessToken = String(env.META_ACCESS_TOKEN || "").trim();
 
   if (!outboundUrl) {
     if (metaAccessToken && incoming.commentId) {
-      const metaResult = await sendMetaPrivateReply(env, incoming.commentId, responseText);
+      const metaResult = await sendMetaPrivateReply(env, incoming.commentId, responseText, options);
       if (metaResult.sent) {
         return metaResult;
       }
@@ -274,6 +310,8 @@ async function sendOutboundMessage(env, incoming, responseText, flow) {
         commentId: incoming.commentId,
         incomingText: incoming.text,
         responseText,
+        buttonTitle: options.buttonTitle || "",
+        buttonUrl: options.buttonUrl || "",
         flowId: flow.id,
         flowName: flow.name,
         deliveryError: metaResult.detail
@@ -292,6 +330,8 @@ async function sendOutboundMessage(env, incoming, responseText, flow) {
       commentId: incoming.commentId,
       incomingText: incoming.text,
       responseText,
+      buttonTitle: options.buttonTitle || "",
+      buttonUrl: options.buttonUrl || "",
       flowId: flow.id,
       flowName: flow.name
     });
@@ -318,7 +358,7 @@ async function sendOutboundMessage(env, incoming, responseText, flow) {
   return { sent: response.ok, detail: detail || response.statusText, mode: "custom_api" };
 }
 
-async function sendMetaPrivateReply(env, commentId, responseText) {
+async function sendMetaPrivateReply(env, commentId, responseText, options = {}) {
   const apiVersion = env.META_GRAPH_VERSION || "v25.0";
   const igUserId = String(env.META_IG_USER_ID || "").trim();
   const graphHost = getGraphHost(env.META_ACCESS_TOKEN, env.META_GRAPH_HOST);
@@ -342,14 +382,35 @@ async function sendMetaPrivateReply(env, commentId, responseText) {
       recipient: {
         comment_id: commentId
       },
-      message: {
-        text: responseText
-      }
+      message: buildMetaMessage(responseText, options)
     })
   });
 
   const detail = await response.text();
   return { sent: response.ok, detail: detail || response.statusText, mode: "meta_private_reply" };
+}
+
+function buildMetaMessage(responseText, options) {
+  if (options.buttonUrl) {
+    return {
+      attachment: {
+        type: "template",
+        payload: {
+          template_type: "button",
+          text: responseText,
+          buttons: [
+            {
+              type: "web_url",
+              title: options.buttonTitle || "Abrir link",
+              url: options.buttonUrl
+            }
+          ]
+        }
+      }
+    };
+  }
+
+  return { text: responseText };
 }
 
 export function getGraphHost(accessToken, configuredHost = "") {

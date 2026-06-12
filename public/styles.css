@@ -313,6 +313,22 @@ pre {
   width: 100%;
 }
 
+.queue-link {
+  display: block;
+  margin: 10px 0;
+  border-radius: 8px;
+  background: var(--accent);
+  color: #ffffff;
+  font-weight: 700;
+  padding: 10px 14px;
+  text-align: center;
+  text-decoration: none;
+}
+
+.step-fields {
+  margin-top: 12px;
+}
+
 @media (max-width: 1100px) {
   .workspace {
     grid-template-columns: 1fr;

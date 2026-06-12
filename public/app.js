@@ -17,6 +17,7 @@ const els = {
   keywords: document.querySelector("#keywords"),
   steps: document.querySelector("#steps"),
   addMessage: document.querySelector("#addMessage"),
+  addLinkButton: document.querySelector("#addLinkButton"),
   addDelay: document.querySelector("#addDelay"),
   addTag: document.querySelector("#addTag"),
   deleteFlow: document.querySelector("#deleteFlow"),
@@ -72,6 +73,12 @@ els.deleteFlow.addEventListener("click", () => {
 });
 
 els.addMessage.addEventListener("click", () => addStep({ type: "message", text: "Nova mensagem" }));
+els.addLinkButton.addEventListener("click", () => addStep({
+  type: "link_button",
+  text: "Baixe o material pelo botao abaixo.",
+  buttonTitle: "Baixar material",
+  buttonUrl: "https://"
+}));
 els.addDelay.addEventListener("click", () => addStep({ type: "delay", seconds: 2 }));
 els.addTag.addEventListener("click", () => addStep({ type: "tag", tag: "novo_lead" }));
 
@@ -189,6 +196,17 @@ function stepTemplate(step, index) {
     return `${header}<label>Etiqueta<input data-step="${index}" data-field="tag" value="${escapeHtml(step.tag || "")}"></label>`;
   }
 
+  if (step.type === "link_button") {
+    return `
+      ${header}
+      <label>Texto<textarea data-step="${index}" data-field="text" rows="3">${escapeHtml(step.text || "")}</textarea></label>
+      <div class="split step-fields">
+        <label>Titulo do botao<input data-step="${index}" data-field="buttonTitle" value="${escapeHtml(step.buttonTitle || "Abrir link")}"></label>
+        <label>URL do botao<input data-step="${index}" data-field="buttonUrl" value="${escapeHtml(step.buttonUrl || "")}" placeholder="https://"></label>
+      </div>
+    `;
+  }
+
   return `${header}<label>Texto<textarea data-step="${index}" data-field="text" rows="4">${escapeHtml(step.text || "")}</textarea></label>`;
 }
 
@@ -271,6 +289,7 @@ async function renderQueue() {
       <span>Recebido: ${escapeHtml(item.incomingText || "-")}</span>
       ${item.deliveryError ? `<span>Erro envio: ${escapeHtml(item.deliveryError)}</span>` : ""}
       <div class="queue-message">${escapeHtml(item.responseText || "")}</div>
+      ${item.buttonUrl ? `<a class="queue-link" href="${escapeHtml(item.buttonUrl)}" target="_blank" rel="noreferrer">${escapeHtml(item.buttonTitle || "Abrir link")}</a>` : ""}
       <button type="button">Copiar resposta</button>
     `;
     card.querySelector("button").addEventListener("click", async () => {
@@ -356,6 +375,7 @@ async function publicRequest(url, options = {}) {
 function labelForStep(type) {
   return {
     message: "Mensagem",
+    link_button: "Botao/link",
     delay: "Espera",
     tag: "Etiqueta"
   }[type] || "Passo";
