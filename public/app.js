@@ -283,7 +283,8 @@ async function renderQueue() {
     card.className = "queue-item";
     card.innerHTML = `
       <strong>${escapeHtml(item.flowName || "Fluxo")}</strong>
-      <span>Pessoa: ${escapeHtml(item.recipientId || "-")}</span>
+      <span>Usuario: ${escapeHtml(item.recipientUsername || item.recipientId || "-")}</span>
+      <span>ID pessoa: ${escapeHtml(item.recipientId || "-")}</span>
       <span>Post: ${escapeHtml(item.postId || "qualquer")}</span>
       <span>Comentario: ${escapeHtml(item.commentId || "-")}</span>
       <span>Recebido: ${escapeHtml(item.incomingText || "-")}</span>
@@ -315,7 +316,8 @@ async function renderEvents() {
       <strong>${escapeHtml(labelForEvent(item.status))}</strong>
       <span>Post: ${escapeHtml(item.incoming?.postId || "-")}</span>
       <span>Comentario: ${escapeHtml(item.incoming?.commentId || "-")}</span>
-      <span>Pessoa: ${escapeHtml(item.incoming?.senderId || "-")}</span>
+      <span>Usuario: ${escapeHtml(item.incoming?.senderUsername || item.incoming?.senderId || "-")}</span>
+      <span>ID pessoa: ${escapeHtml(item.incoming?.senderId || "-")}</span>
       <span>Texto: ${escapeHtml(item.incoming?.text || "-")}</span>
       <span>Fluxo: ${escapeHtml(item.flowName || item.reason || "-")}</span>
       ${item.actions?.length ? `<span>Envio: ${escapeHtml(item.actions.map((action) => `${action.mode || action.type}: ${action.detail || ""}`).join(" | "))}</span>` : ""}
